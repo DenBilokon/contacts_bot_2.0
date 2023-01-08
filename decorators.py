@@ -1,4 +1,4 @@
-from assistant import WrongTypePhone, WrongLenPhone
+from bot_classes import WrongTypePhone, WrongLenPhone
 
 def input_error(func):
 
