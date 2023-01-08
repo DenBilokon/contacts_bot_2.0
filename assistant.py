@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 
 
 def input_error(func):
-
     def wrapper(*args):
         try:
             return func(*args)
@@ -20,10 +19,10 @@ def input_error(func):
         except WrongLenPhone:
             return "Length of phone's number is wrong"
         except WrongTypePhone:
-            return 'Incorrect phone number'
-
+            return 'Incorrect phone number)))'
 
     return wrapper
+
 
 HELP_TEXT = """This contact bot save your contacts 
     Global commands:
@@ -59,23 +58,38 @@ class AddressBook(UserDict):
         self.data.pop(record.name.value, None)
 
     def show_rec(self, name):
-        return f'{name} : {", ".join([str(phone.value) for phone in self.data[name].phones])}'
+        return f'{name} (B-day: {rec.birthday}): {", ".join([str(phone.value) for phone in self.data[name].phones])}'
 
     def show_all_rec(self):
-        return "\n".join(f'{rec.name} : {", ".join([p.value for p in rec.phones])}' for rec in self.data.values())
+        return "\n".join(f'{rec.name} (B-day: {rec.birthday}): {", ".join([p.value for p in rec.phones])}' for rec in self.data.values())
 
     def change_record(self, name_user, old_record_num, new_record_num):
         record = self.data.get(name_user)
         if record:
             record.change(old_record_num, new_record_num)
 
+    def iterator(self, n):
+        records = list(self.data.keys())
+        records_num = len(records)
+        count = 0
+        result = ''
+        if n > records_num:
+            n = records_num
+        # for i in range(0, records_num, n):
+        #     yield "\n".join(f'{rec.name} (B-day: {rec.birthday}): {", ".join([p.value for p in rec.phones])}' for rec in self.data.values())
+        #     # yield [self.data[records[i + j]].show_contact() for j in range(n) if i + j < records_num]
+        for rec in self.data.values():
+            if count <= n:
+                result += "\n".join(f'{rec.name} (B-day: {rec.birthday}): {", ".join([p.value for p in rec.phones])}')
+                count += 1
+        yield result
 
 class Field:
 
     def __init__(self, value):
         self._value = value
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self._value
 
     @property
@@ -88,6 +102,12 @@ class Field:
 
 
 class Name(Field):
+
+    def __str__(self):
+        return str(self._value)
+
+    def __repr__(self):
+        return str(self._value)
 
     @Field.value.setter
     def value(self, value):
@@ -106,7 +126,7 @@ class Phone(Field):
             .replace(")", "")
             .replace("-", "")
             .replace(" ", "")
-            )
+        )
         try:
             new_phone = [str(int(i)) for i in new_phone]
         except ValueError:
@@ -124,6 +144,12 @@ class Phone(Field):
     def __init__(self, value):
         super().__init__(value)
         self._value = Phone.sanitize_phone_number(value)
+
+    def __str__(self):
+        return str(self._value)
+
+    def __repr__(self):
+        return str(self._value)
 
     @Field.value.setter
     def value(self, value):
@@ -145,6 +171,12 @@ class Birthday(datetime):
     def __init__(self, year, month, day):
         self.__birthday = self.sanitize_date(year, month, day)
 
+    def __str__(self):
+        return str(self.__birthday)
+
+    def __repr__(self):
+        return str(self.__birthday)
+
     @property
     def birthday(self):
         return self.__birthday
@@ -159,7 +191,7 @@ class Record:
 
     def __init__(self, name, phone=None, birthday=None):
         if birthday:
-            self.birthday = Birthday(birthday)
+            self.birthday = Birthday(*birthday)
         else:
             self.birthday = None
         self.name = name
@@ -194,13 +226,13 @@ class Record:
         phone = Phone(phone_num)
 
         for ph in self.phones:
-            if ph.value == phone:
-                self.phones.remove(phone)
+            if ph.value == phone.value:
+                self.phones.remove(ph)
                 return f'Phone {phone_num} deleted'
             else:
                 return f'Number {phone_num} not found'
 
-    def add_birthday(self, year, month, day):
+    def add_user_birthday(self, year, month, day):
         self.birthday = Birthday.sanitize_date(int(year), int(month), int(day))
 
     def days_to_birthday(self):
@@ -219,6 +251,14 @@ class Record:
                 return f"{self.name}'s birthday will be in {delta.days} days"
         else:
             return f"{self.name}'s birthday is unknown"
+
+    def get_contact(self):
+        phones = ", ".join([str(p) for p in self.phones])
+        return {
+            "name": str(self.name.value),
+            "phone": phones,
+            "birthday": self.birthday
+            }
 
 
 ADDRESSBOOK = AddressBook()
@@ -240,7 +280,7 @@ def help_user(*args):
 
 # Add user or user with phone to AddressBook
 @input_error
-def add(*args):
+def add_phone(*args):
     name = Name(str(args[0]).title())
     phone_num = (Phone(args[1]))
     rec = ADDRESSBOOK.get(name.value)
@@ -259,27 +299,28 @@ def change(*args):
     old_phone = Phone(args[1])
     new_phone = Phone(args[2])
     ADDRESSBOOK.change_record(name.value, old_phone.value, new_phone.value)
-    return 'Chahged'
+    return f'User {name} changed {old_phone} to {new_phone}'
 
 
 # Delete contact
 @input_error
 def delete_contact(*args):
-    name_1 = ADDRESSBOOK[args[0].title()]
-    ADDRESSBOOK.remove_record(name_1)
+    name = ADDRESSBOOK[args[0].title()]
+    ADDRESSBOOK.remove_record(name)
     return f'Contact {args[0]} deleted'
 
+
 # @input_error
-# def delete_phone(*args):
-#     name = ADDRESSBOOK[args[0].title()]
-#     phone = Phone(args[1])
-#
-#     if name in AD:
-#         address_book[name.title()].delete_phone(phone)
-#         return f"Phone for {name.title()} was delete"
-#     else:
-#         return f"Contact {name.title()} does not exist"
-#     return f'Contact {name} deleted'
+def delete_phone(*args):
+    name = Name(str(args[0]).title())
+    phone = Phone(args[1])
+
+    if name.value in ADDRESSBOOK:
+        ADDRESSBOOK[name.value].remove_phone(phone.value)
+        return f"Phone for {name.value} was delete"
+    else:
+        return f"Contact {name.value} does not exist"
+
 
 # Show some contact
 @input_error
@@ -295,13 +336,50 @@ def show_all(*args):
         return 'AddressBook is empty'
 
 
+@input_error
+def show_list(*args):
+    if len(ADDRESSBOOK):
+        return ADDRESSBOOK.iterator(int(args[0]))
+    else:
+        return 'AddressBook is empty'
+
+
+@input_error
+def add_birthday(*args):
+    name = Name(str(args[0]).title())
+    birthday = tuple(re.split('\D', args[1]))
+
+    if name.value in ADDRESSBOOK:
+        ADDRESSBOOK[name.value].add_user_birthday(*birthday)
+        return f"The Birthday for {name.value} was recorded"
+    else:
+        return f"Contact {name.value} does not exists"
+
+
+@input_error
+def days_to_bday(*args):
+    name = Name(str(args[0]).title())
+    if name.value in ADDRESSBOOK:
+        if ADDRESSBOOK[name.value].birthday:
+            days = ADDRESSBOOK[name.value].days_to_birthday()
+            return days
+        else:
+            return f'{name.value} birthday is unknown'
+    else:
+        return f'Contact {name.value} does not exists'
+
+
 COMMANDS = {
     hello: ["hello", "hi"],
     show_all: ["show all"],
+    show_list: ["show list"],
     phone: ["phone"],
-    add: ["add"],
+    add_phone: ["add contact"],
     change: ["change"],
-    delete_contact: ["delete"],
+    delete_contact: ["delete user"],
+    delete_phone: ["delete phone"],
+    add_birthday: ["add birthday"],
+    days_to_bday: ['when celebrate'],
     help_user: ["help"],
     bye: [".", "bye", "good bye", "close", "exit"],
 }
@@ -324,7 +402,6 @@ def run_bot(user_input):
 
 
 def main():
-
     while True:
         user_input = str(input(">>>> "))
         result = run_bot(user_input)
@@ -335,5 +412,4 @@ def main():
 
 
 if __name__ == "__main__":
-
     main()
