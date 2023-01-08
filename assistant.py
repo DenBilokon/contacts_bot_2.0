@@ -344,7 +344,7 @@ def show_all(*args):
         return ADDRESSBOOK.show_all_rec()
     else:
         return 'AddressBook is empty'
-range
+
 
 @input_error
 def show_list(*args):
