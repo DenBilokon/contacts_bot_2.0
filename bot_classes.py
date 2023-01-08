@@ -20,7 +20,7 @@ class AddressBook(UserDict):
         self.data.pop(record.name.value, None)
 
     def show_rec(self, name):
-        return f'{name} (B-day: {rec.birthday}): {", ".join([str(phone.value) for phone in self.data[name].phones])}'
+        return f'{name} (B-day: {self.data[name].birthday}): {", ".join([str(phone.value) for phone in self.data[name].phones])}'
 
     def show_all_rec(self):
         return "\n".join(f'{rec.name} (B-day: {rec.birthday}): {", ".join([p.value for p in rec.phones])}' for rec in self.data.values())
@@ -38,8 +38,8 @@ class AddressBook(UserDict):
         if n > records_num:
             n = records_num
         for rec in self.data.values():
-            if count <= n:
-                result += "\n".join(f'{rec.name} (B-day: {rec.birthday}): {", ".join([p.value for p in rec.phones])}')
+            if count < n:
+                result += f'{rec.name} (B-day: {rec.birthday}): {", ".join([p.value for p in rec.phones])}\n'
                 count += 1
         yield result
 

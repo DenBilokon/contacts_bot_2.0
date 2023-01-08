@@ -1,7 +1,7 @@
 from bot_classes import WrongTypePhone, WrongLenPhone
 
-def input_error(func):
 
+def input_error(func):
     def wrapper(*args):
         try:
             return func(*args)
@@ -17,6 +17,5 @@ def input_error(func):
             return "Length of phone's number is wrong"
         except WrongTypePhone:
             return 'Incorrect phone number'
-
 
     return wrapper

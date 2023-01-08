@@ -45,7 +45,6 @@ def help_user(*args):
 def add_birthday(*args):
     name = Name(str(args[0]).title())
     birthday = tuple(re.split('\D', args[1]))
-
     if name.value in ADDRESSBOOK:
         ADDRESSBOOK[name.value].add_user_birthday(*birthday)
         return f"The Birthday for {name.value} was recorded"
@@ -102,7 +101,6 @@ def delete_contact(*args):
 def delete_phone(*args):
     name = Name(str(args[0]).title())
     phone = Phone(args[1])
-
     if name.value in ADDRESSBOOK:
         ADDRESSBOOK[name.value].remove_phone(phone.value)
         return f"Phone for {name.value} was delete"
@@ -127,7 +125,7 @@ def show_all(*args):
 @input_error
 def show_list(*args):
     if len(ADDRESSBOOK):
-        return ADDRESSBOOK.iterator(int(args[0]))
+        return ''.join(ADDRESSBOOK.iterator(int(args[0])))
     else:
         return 'AddressBook is empty'
 
