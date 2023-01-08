@@ -75,14 +75,12 @@ class AddressBook(UserDict):
         result = ''
         if n > records_num:
             n = records_num
-        # for i in range(0, records_num, n):
-        #     yield "\n".join(f'{rec.name} (B-day: {rec.birthday}): {", ".join([p.value for p in rec.phones])}' for rec in self.data.values())
-        #     # yield [self.data[records[i + j]].show_contact() for j in range(n) if i + j < records_num]
         for rec in self.data.values():
             if count <= n:
                 result += "\n".join(f'{rec.name} (B-day: {rec.birthday}): {", ".join([p.value for p in rec.phones])}')
                 count += 1
         yield result
+
 
 class Field:
 
@@ -277,6 +275,18 @@ def bye(*args):
 def help_user(*args):
     return HELP_TEXT
 
+# Add user birthday to AddressBook
+@input_error
+def add_birthday(*args):
+    name = Name(str(args[0]).title())
+    birthday = tuple(re.split('\D', args[1]))
+
+    if name.value in ADDRESSBOOK:
+        ADDRESSBOOK[name.value].add_user_birthday(*birthday)
+        return f"The Birthday for {name.value} was recorded"
+    else:
+        return f"Contact {name.value} does not exists"
+
 
 # Add user or user with phone to AddressBook
 @input_error
@@ -334,7 +344,7 @@ def show_all(*args):
         return ADDRESSBOOK.show_all_rec()
     else:
         return 'AddressBook is empty'
-
+range
 
 @input_error
 def show_list(*args):
@@ -344,29 +354,7 @@ def show_list(*args):
         return 'AddressBook is empty'
 
 
-@input_error
-def add_birthday(*args):
-    name = Name(str(args[0]).title())
-    birthday = tuple(re.split('\D', args[1]))
 
-    if name.value in ADDRESSBOOK:
-        ADDRESSBOOK[name.value].add_user_birthday(*birthday)
-        return f"The Birthday for {name.value} was recorded"
-    else:
-        return f"Contact {name.value} does not exists"
-
-
-@input_error
-def days_to_bday(*args):
-    name = Name(str(args[0]).title())
-    if name.value in ADDRESSBOOK:
-        if ADDRESSBOOK[name.value].birthday:
-            days = ADDRESSBOOK[name.value].days_to_birthday()
-            return days
-        else:
-            return f'{name.value} birthday is unknown'
-    else:
-        return f'Contact {name.value} does not exists'
 
 
 COMMANDS = {
